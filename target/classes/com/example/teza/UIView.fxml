@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane fx:id="app" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="650.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.teza.UIController">
+   <left>
+       <VBox prefHeight="400.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+           <Button alignment="CENTER" mnemonicParsing="false" prefHeight="40.0" prefWidth="100.0" text="Store"
+                   textAlignment="CENTER"/>
+           <Button alignment="CENTER" mnemonicParsing="false" prefHeight="40.0" prefWidth="100.0" text="Library"
+                   textAlignment="CENTER"/>
+       </VBox>
+   </left>
+   <top>
+       <MenuBar BorderPane.alignment="CENTER">
+           <Menu mnemonicParsing="false" text="File">
+               <MenuItem mnemonicParsing="false" text="Close"/>
+           </Menu>
+           <Menu mnemonicParsing="false" text="Edit">
+               <MenuItem mnemonicParsing="false" text="Delete"/>
+           </Menu>
+           <Menu mnemonicParsing="false" text="Help">
+               <MenuItem mnemonicParsing="false" text="About"/>
+           </Menu>
+       </MenuBar>
+   </top>
+   <center>
+       <ScrollPane prefHeight="200.0" prefWidth="565.0" BorderPane.alignment="CENTER">
+           <AnchorPane fx:id="library" minHeight="0.0" minWidth="0.0" prefHeight="375.0" prefWidth="535.0">
+               <VBox alignment="TOP_RIGHT" layoutX="10.0" layoutY="10.0" prefHeight="225.0" prefWidth="165.0"
+                     spacing="5.0" style="-fx-border-color: black;" visible="false">
+                   <padding>
+                       <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                   </padding>
+                   <Label alignment="CENTER" prefHeight="25.0" prefWidth="150.0" text="Title"
+                          textAlignment="CENTER">
+                       <font>
+                           <Font name="Georgia Bold" size="20.0"/>
+                       </font>
+                   </Label>
+                   <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true"/>
+                   <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="70.0" text="Play"/>
+               </VBox>
+               <Pane fx:id="addFileButton" layoutX="185.0" layoutY="10.0" prefHeight="225.0" prefWidth="165.0"
+                     style="-fx-border-color: black;">
+                   <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b9b9b9" height="60.0" layoutX="75.0"
+                              layoutY="83.0" stroke="#b9b9b9" strokeType="INSIDE" width="20.0"/>
+                   <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b9b9b9" height="60.0" layoutX="75.0"
+                              layoutY="83.0" rotate="90.0" stroke="#b9b9b9" strokeType="INSIDE" width="20.0"/>
+               </Pane>
+               <VBox fx:id="elemUtilities" layoutX="145.0" layoutY="123.0" prefHeight="50.0" prefWidth="60.0"
+                     visible="false">
+                   <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="60.0" text="Edit"/>
+                   <Button mnemonicParsing="false" text="Remove"/>
+               </VBox>
+           </AnchorPane>
+       </ScrollPane>
+   </center>
+</BorderPane>
