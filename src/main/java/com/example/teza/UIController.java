@@ -1,10 +1,9 @@
 package com.example.teza;
 
+import com.example.utilities.ComponentFactory;
 import com.example.utilities.Game;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -15,15 +14,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
-import javafx.embed.swing.*;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -49,42 +41,6 @@ public class UIController implements Initializable {
   double startX,startY;
   int rowNr,columnNr, elemNr;
   
-  private VBox generateContainer(int nr){
-    VBox box = new VBox();
-    box.setPrefWidth(165d);
-    box.setPrefHeight(225d);
-    int column = nr%columnNr;
-    int row = nr/columnNr;
-    box.setLayoutX(column*175+10);
-    box.setLayoutY(row*235+10);
-    box.setSpacing(5);
-    box.setPadding(new Insets(5,5,5,5));
-    box.setStyle("-fx-border-color: black");
-    box.setAlignment(Pos.TOP_RIGHT);
-    return box;
-  }
-  private Label generateLabel(String name){
-    Label label = new Label(name);
-    label.setFont(Font.font("Georgia",FontWeight.BOLD,20));
-    label.setPrefWidth(150);
-    label.setPrefHeight(20);
-    label.setAlignment(Pos.CENTER);
-    return label;
-  }
-  private Image generateImage(File sourceFile){
-    ImageIcon gameIcon = (ImageIcon) FileSystemView.getFileSystemView().getSystemIcon(sourceFile);
-    BufferedImage bufferedImage = new BufferedImage(150, 150, BufferedImage.TYPE_4BYTE_ABGR);
-    Graphics2D graphics = bufferedImage.createGraphics();
-    graphics.drawImage(gameIcon.getImage(), 0, 0, 150,150,null);
-    graphics.dispose();
-    return SwingFXUtils.toFXImage(bufferedImage, null);
-  }
-  private Button generateButton(){
-    Button button = new Button("Play");
-    button.setPrefWidth(70d);
-    button.setPrefHeight(25d);
-    return button;
-  }
   private void updateGameList(Game game){
     gameList.add(game);
     rowNr = elemNr/columnNr + 1;
@@ -125,7 +81,10 @@ public class UIController implements Initializable {
     library.setPrefHeight(rowNr*235+10);
   }
   private void addElemToView(Game game){
-    VBox gameShowContainer = generateContainer(game.id());
+    int nr = game.id();
+    int column = nr%columnNr;
+    int row = nr/columnNr;
+    VBox gameShowContainer = ComponentFactory.generateContainer(column, row);
     gameShowContainer.setOnMouseClicked(mouseEvent -> {
       if (mouseEvent.getButton() == MouseButton.SECONDARY){
         elemUtilities.setLayoutX(mouseEvent.getSceneX()-100);
@@ -145,15 +104,15 @@ public class UIController implements Initializable {
       }
     });
   
-    Label gameTitle = generateLabel(game.name());
+    Label gameTitle = ComponentFactory.generateLabel(game.name());
     gameShowContainer.getChildren().add(gameTitle);
     
     ImageView gameImageView = new ImageView();
-    Image gameImage = generateImage(new File(game.url()));
+    Image gameImage = ComponentFactory.generateImage(new File(game.url()));
     gameImageView.setImage(gameImage);
     gameShowContainer.getChildren().add(gameImageView);
     
-    Button gameRunButton = generateButton();
+    Button gameRunButton = ComponentFactory.generateButton();
     gameRunButton.setOnAction(actionEvent -> {
       try {
         Runtime.getRuntime().exec(game.url());
