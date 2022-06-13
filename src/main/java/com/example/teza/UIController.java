@@ -9,8 +9,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -24,6 +26,7 @@ import java.io.PrintWriter;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Scanner;
 
@@ -41,6 +44,17 @@ public class UIController implements Initializable {
   ArrayList<Game> gameList;
   int rowNr,columnNr, elemNr;
   
+  private void addNewGame(File gameExeFile){
+    String gameExeName = gameExeFile.getName().replace(".exe","");
+    String gameExeUrl = gameExeFile.getAbsolutePath();
+    Game game = new Game(elemNr++,gameExeName, gameExeUrl);
+    addElemToView(game);
+    updateGameList(game);
+  
+    addFileButton.setLayoutX(elemNr%columnNr*175+10);
+    addFileButton.setLayoutY((rowNr-1)*235+10);
+    library.setPrefHeight(rowNr*235+10);
+  }
   private void updateGameList(Game game){
     gameList.add(game);
     rowNr = elemNr/columnNr + 1;
@@ -71,14 +85,7 @@ public class UIController implements Initializable {
     if (gameExeFile == null)
       return;
   
-    String gameExeName = gameExeFile.getName().replace(".exe","");
-    String gameExeUrl = gameExeFile.getAbsolutePath();
-    Game game = new Game(elemNr++,gameExeName, gameExeUrl);
-    addElemToView(game);
-    updateGameList(game);
-    addFileButton.setLayoutX(elemNr%columnNr*175+10);
-    addFileButton.setLayoutY((rowNr-1)*235+10);
-    library.setPrefHeight(rowNr*235+10);
+    addNewGame(gameExeFile);
   }
   private void addElemToView(Game game){
     int nr = game.id();
@@ -109,11 +116,15 @@ public class UIController implements Initializable {
   public void initialize(URL url, ResourceBundle resourceBundle) {
     loadGameFiles();
     initializeLibrary();
-    addFileButton.setOnMouseClicked(mouseEvent -> selectFile());
+    addFileButton.setOnMouseClicked(mouseEvent -> {
+      selectFile();
+      mouseEvent.consume();
+    });
     app.setOnKeyPressed(key -> {
       if(key.getCode() == KeyCode.A){
         selectFile();
       }
+      key.consume();
     });
   }
   private void initializeLibrary(){
@@ -127,9 +138,34 @@ public class UIController implements Initializable {
     gameList.forEach(this::addElemToView);
   
     library.setOnMouseClicked(mouseEvent -> {
-      if (mouseEvent.getButton() != MouseButton.SECONDARY){
+      if (mouseEvent.getButton() != MouseButton.SECONDARY) {
         elemUtilities.setVisible(false);
       }
+      mouseEvent.consume();
+    });
+    
+    library.setOnDragOver(dragEvent -> {
+      if (dragEvent.getGestureSource() != library &&
+          dragEvent.getDragboard().hasFiles()){
+        dragEvent.acceptTransferModes(TransferMode.COPY_OR_MOVE);
+      }
+      dragEvent.consume();
+    });
+    
+    library.setOnDragDropped(dragEvent -> {
+      Dragboard db = dragEvent.getDragboard();
+      boolean succes = false;
+      if (db.hasFiles()){
+        List<File> filesToAdd = db.getFiles();
+        for (File file : filesToAdd) {
+          if (file.canExecute()){
+            addNewGame(file);
+          }
+        }
+        succes = true;
+      }
+      dragEvent.setDropCompleted(succes);
+      dragEvent.consume();
     });
   }
   
