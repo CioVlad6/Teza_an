@@ -1,6 +1,7 @@
 package com.example.teza;
 
 import com.example.utilities.ComponentFactory;
+import com.example.utilities.EventsFactory;
 import com.example.utilities.Game;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -38,7 +39,6 @@ public class UIController implements Initializable {
   
   File gameListFile;
   ArrayList<Game> gameList;
-  double startX,startY;
   int rowNr,columnNr, elemNr;
   
   private void updateGameList(Game game){
@@ -84,25 +84,11 @@ public class UIController implements Initializable {
     int nr = game.id();
     int column = nr%columnNr;
     int row = nr/columnNr;
-    VBox gameShowContainer = ComponentFactory.generateContainer(column, row);
-    gameShowContainer.setOnMouseClicked(mouseEvent -> {
-      if (mouseEvent.getButton() == MouseButton.SECONDARY){
-        elemUtilities.setLayoutX(mouseEvent.getSceneX()-100);
-        elemUtilities.setLayoutY(mouseEvent.getSceneY()-25);
-        elemUtilities.setViewOrder(-1);
-        elemUtilities.setVisible(true);
-      }
-    });
-    gameShowContainer.setOnMousePressed(mouseEvent -> {
-      startX = mouseEvent.getSceneX() - gameShowContainer.getLayoutX();
-      startY = mouseEvent.getSceneY() - gameShowContainer.getLayoutY();
-    });
-    gameShowContainer.setOnMouseDragged(mouseEvent -> {
-      if (mouseEvent.getButton() == MouseButton.PRIMARY) {
-        gameShowContainer.setLayoutX(mouseEvent.getSceneX() - startX);
-        gameShowContainer.setLayoutY(mouseEvent.getSceneY() - startY);
-      }
-    });
+    VBox gameShowContainer = ComponentFactory.generateContainer();
+    gameShowContainer.setLayoutX(column*175+10);
+    gameShowContainer.setLayoutY(row*235+10);
+    EventsFactory.setContextMenu(gameShowContainer, elemUtilities);
+    EventsFactory.setDraggable(gameShowContainer);
   
     Label gameTitle = ComponentFactory.generateLabel(game.name());
     gameShowContainer.getChildren().add(gameTitle);
@@ -112,14 +98,8 @@ public class UIController implements Initializable {
     gameImageView.setImage(gameImage);
     gameShowContainer.getChildren().add(gameImageView);
     
-    Button gameRunButton = ComponentFactory.generateButton();
-    gameRunButton.setOnAction(actionEvent -> {
-      try {
-        Runtime.getRuntime().exec(game.url());
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    });
+    Button gameRunButton = ComponentFactory.generateButton("Play");
+    EventsFactory.setRunFile(gameRunButton, game.url());
     gameShowContainer.getChildren().add(gameRunButton);
     
     library.getChildren().add(gameShowContainer);

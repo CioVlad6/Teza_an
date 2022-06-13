@@ -16,13 +16,11 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
-public class ComponentFactory {
-  public static VBox generateContainer(int column, int row){
+abstract public class ComponentFactory {
+  public static VBox generateContainer(){
     VBox box = new VBox();
     box.setPrefWidth(165d);
     box.setPrefHeight(225d);
-    box.setLayoutX(column*175+10);
-    box.setLayoutY(row*235+10);
     box.setSpacing(5);
     box.setPadding(new Insets(5,5,5,5));
     box.setStyle("-fx-border-color: black");
@@ -45,8 +43,8 @@ public class ComponentFactory {
     graphics.dispose();
     return SwingFXUtils.toFXImage(bufferedImage, null);
   }
-  public static Button generateButton(){
-    Button button = new Button("Play");
+  public static Button generateButton(String text){
+    Button button = new Button(text);
     button.setPrefWidth(70d);
     button.setPrefHeight(25d);
     return button;
