@@ -61,11 +61,6 @@
                    <Rectangle arcHeight="5.0" arcWidth="5.0" fill="#b9b9b9" height="60.0" layoutX="75.0"
                               layoutY="83.0" rotate="90.0" stroke="#b9b9b9" strokeType="INSIDE" width="20.0"/>
                </Pane>
-               <VBox fx:id="elemUtilities" layoutX="145.0" layoutY="123.0" prefHeight="50.0" prefWidth="60.0"
-                     visible="false">
-                   <Button mnemonicParsing="false" prefHeight="25.0" prefWidth="60.0" text="Edit"/>
-                   <Button mnemonicParsing="false" text="Remove"/>
-               </VBox>
            </AnchorPane>
        </ScrollPane>
    </center>

@@ -14,4 +14,6 @@ module com.example.teza {
   
   opens com.example.teza to javafx.fxml;
   exports com.example.teza;
+  exports com.example.utilities;
+  opens com.example.utilities to javafx.fxml;
 }

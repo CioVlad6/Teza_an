@@ -1,2 +1,0 @@
-Factorio|D:\games\Factorio\bin\x64\factorio.exe
-Code|D:\Programs\Microsoft VS Code\Code.exe

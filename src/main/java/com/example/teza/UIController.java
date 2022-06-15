@@ -1,34 +1,21 @@
 package com.example.teza;
 
-import com.example.utilities.ComponentFactory;
-import com.example.utilities.EventsFactory;
-import com.example.utilities.Game;
+import com.example.utilities.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Scanner;
 
 public class UIController implements Initializable {
   @FXML
@@ -37,93 +24,17 @@ public class UIController implements Initializable {
   AnchorPane library;
   @FXML
   Pane addFileButton;
-  @FXML
-  VBox elemUtilities;
-  
-  File gameListFile;
-  ArrayList<Game> gameList;
+  ArrayList<ExeFile> exeFileList;
   int rowNr,columnNr, elemNr;
-  
-  private void addNewGame(File gameExeFile){
-    String gameExeName = gameExeFile.getName().replace(".exe","");
-    String gameExeUrl = gameExeFile.getAbsolutePath();
-    Game game = new Game(elemNr++,gameExeName, gameExeUrl);
-    addElemToView(game);
-    updateGameList(game);
-  
-    addFileButton.setLayoutX(elemNr%columnNr*175+10);
-    addFileButton.setLayoutY((rowNr-1)*235+10);
-    library.setPrefHeight(rowNr*235+10);
-  }
-  private void updateGameList(Game game){
-    gameList.add(game);
-    rowNr = elemNr/columnNr + 1;
-    
-    StringBuilder text = new StringBuilder();
-    try {
-      Scanner in = new Scanner(gameListFile);
-      while(in.hasNextLine()){
-        text.append(in.nextLine()).append('\n');
-      }
-      text.append(game.name()).append('|').append(game.url());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    try{
-      PrintWriter out = new PrintWriter(gameListFile, StandardCharsets.UTF_8);
-      out.print(text);
-      out.close();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  
-  }
-  public void selectFile(){
-    FileChooser f_chooser = new FileChooser();
-    f_chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(".Exe Files", "*.exe"));
-    File gameExeFile = f_chooser.showOpenDialog(null);
-    if (gameExeFile == null)
-      return;
-  
-    addNewGame(gameExeFile);
-  }
-  private void addElemToView(Game game){
-    int nr = game.id();
-    int column = nr%columnNr;
-    int row = nr/columnNr;
-    VBox gameShowContainer = ComponentFactory.generateContainer();
-    gameShowContainer.setLayoutX(column*175+10);
-    gameShowContainer.setLayoutY(row*235+10);
-    EventsFactory.setContextMenu(gameShowContainer, elemUtilities);
-    EventsFactory.setDraggable(gameShowContainer);
-  
-    Label gameTitle = ComponentFactory.generateLabel(game.name());
-    gameShowContainer.getChildren().add(gameTitle);
-    
-    ImageView gameImageView = new ImageView();
-    Image gameImage = ComponentFactory.generateImage(new File(game.url()));
-    gameImageView.setImage(gameImage);
-    gameShowContainer.getChildren().add(gameImageView);
-    
-    Button gameRunButton = ComponentFactory.generateButton("Play");
-    EventsFactory.setRunFile(gameRunButton, game.url());
-    gameShowContainer.getChildren().add(gameRunButton);
-    
-    library.getChildren().add(gameShowContainer);
-  }
   
   @Override
   public void initialize(URL url, ResourceBundle resourceBundle) {
-    loadGameFiles();
+    exeFileList = FileManagement.loadExeFilesList();
+    elemNr = exeFileList.size();
     initializeLibrary();
-    addFileButton.setOnMouseClicked(mouseEvent -> {
-      selectFile();
-      mouseEvent.consume();
-    });
+    
     app.setOnKeyPressed(key -> {
-      if(key.getCode() == KeyCode.A){
-        selectFile();
-      }
+      if(key.getCode() == KeyCode.A) selectFile();
       key.consume();
     });
   }
@@ -135,33 +46,27 @@ public class UIController implements Initializable {
     
     addFileButton.setLayoutX(elemNr%columnNr*175+10);
     addFileButton.setLayoutY((rowNr-1)*235+10);
-    gameList.forEach(this::addElemToView);
-  
-    library.setOnMouseClicked(mouseEvent -> {
-      if (mouseEvent.getButton() != MouseButton.SECONDARY) {
-        elemUtilities.setVisible(false);
-      }
+    addFileButton.setOnMouseClicked(mouseEvent -> {
+      selectFile();
       mouseEvent.consume();
     });
     
+    exeFileList.forEach(this::addElemToView);
+    
     library.setOnDragOver(dragEvent -> {
-      if (dragEvent.getGestureSource() != library &&
-          dragEvent.getDragboard().hasFiles()){
+      if (dragEvent.getGestureSource() != library && dragEvent.getDragboard().hasFiles() &&
+        dragEvent.getDragboard().getFiles().stream().map(File::getName).allMatch(name -> name.endsWith(".exe")))
+      {
         dragEvent.acceptTransferModes(TransferMode.COPY_OR_MOVE);
       }
       dragEvent.consume();
     });
-    
     library.setOnDragDropped(dragEvent -> {
       Dragboard db = dragEvent.getDragboard();
       boolean succes = false;
       if (db.hasFiles()){
         List<File> filesToAdd = db.getFiles();
-        for (File file : filesToAdd) {
-          if (file.canExecute()){
-            addNewGame(file);
-          }
-        }
+        filesToAdd.forEach(this::addNewExeFile);
         succes = true;
       }
       dragEvent.setDropCompleted(succes);
@@ -169,19 +74,36 @@ public class UIController implements Initializable {
     });
   }
   
-  private void loadGameFiles(){
-    try {
-      gameListFile = new File("src/main/java/com/example/utilities/gamesList.txt");
-      Scanner in = new Scanner(gameListFile);
-      gameList = new ArrayList<>();
-      int i = 0;
-      while(in.hasNextLine()){
-        String[] str = in.nextLine().split("\\|");
-        gameList.add(new Game(i++,str[0],str[1]));
-      }
-      elemNr = gameList.size();
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    }
+  public void selectFile(){
+    FileChooser f_chooser = new FileChooser();
+    f_chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter(".Exe Files", "*.exe"));
+    File selectedFile = f_chooser.showOpenDialog(null);
+    
+    if (selectedFile == null)
+      return;
+    addNewExeFile(selectedFile);
+  }
+  private void addNewExeFile(File selectedFile){
+    String gameExeName = selectedFile.getName().replace(".exe","");
+    String gameExeUrl = selectedFile.getAbsolutePath();
+    ExeFile exeFile = new ExeFile(elemNr++,gameExeName, gameExeUrl);
+    
+    addElemToView(exeFile);
+    FileManagement.updateExeFileList(exeFile);
+    exeFileList.add(exeFile);
+    
+    rowNr = elemNr/columnNr + 1;
+    addFileButton.setLayoutX(elemNr%columnNr*175+10);
+    addFileButton.setLayoutY((rowNr-1)*235+10);
+    library.setPrefHeight(rowNr*235+10);
+  }
+  private void addElemToView(ExeFile exeFile){
+    int nr = exeFile.id();
+    int column = nr%columnNr;
+    int row = nr/columnNr;
+    ExeContainer container = new ExeContainer(exeFile);
+    container.setLayoutX(column*175+10);
+    container.setLayoutY(row*235+10);
+    library.getChildren().add(container);
   }
 }
